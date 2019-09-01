@@ -21,7 +21,7 @@ function resizeContent(){
 
 //Adds new notifications to the notification section
 function addNotification(notification){
-    $("#notification-section").append(`<p class="notification">${notification["data"]}</p>`);
+    $("#notification-section").append(`<p class="notification">${notification}</p>`);
 }
 
 /****************************************************************
@@ -38,8 +38,8 @@ function upload(){
         contentType : false,
         cache : false,
         processData :false,
-        success : (notification)=>{
-            addNotification(notification);
+        success : (response)=>{
+            console.log(response);
         },
         error : ()=>{
             console.log("Unable to upload file");
@@ -59,9 +59,9 @@ $(document).ready(function(){
         upload();
     });
 
-    $("#test_btn").click(function(){
-       testUpload();
+    /* Define Event Source for Server Sent Event */
+    var eventSrc = new EventSource("/filemanager/notifications");
+    eventSrc.addEventListener("file_operations", function(event){
+        addNotification(event.data);
     });
-
-
 });

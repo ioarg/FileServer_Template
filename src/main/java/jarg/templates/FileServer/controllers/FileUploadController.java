@@ -57,7 +57,7 @@ public class FileUploadController {
             try {
                 emitter.send(SseEmitter.event().name("file_operations").data(message));
                 logger.info("Notification sent");
-            } catch (IOException e) {
+            } catch (IOException | IllegalStateException e) {
                 logger.error(e.getMessage());
                 toBeRemoved.add(emitter);
             }

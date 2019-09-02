@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>File Server</title>
+    <link rel="stylesheet" href="/styles/bootstrap.min.css">
+    <link rel="stylesheet" href="/styles/main_style.css">
+</head>
+<body>
+<nav class="navbar navbar-dark bg-dark">
+    <a class="navbar-brand" href="#">File Server</a>
+</nav>
+<div>
+    <div id="body-container">
+        <div class="centered-text">
+            <h4>File Server</h4>
+            <p>This project uses Spring MVC to support asynchronous file uploads and downloads.</p>
+            <p>Choose what to do with the uploaded files or go <a href="/">here</a> to upload a new one.</p>
+        </div>
+        <div id="file_list_container" class="centered-div">
+        </div>
+    </div>
+    <div id="notification-section"></div>
+</div>
+</body>
+<script src="/scripts/jquery-3.3.1.min.js" ></script>
+<script src="/scripts/bootstrap.min.js" ></script>
+<script src="/scripts/download_page.js" ></script>
+</html>

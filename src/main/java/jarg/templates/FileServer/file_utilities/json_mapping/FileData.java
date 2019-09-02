@@ -11,8 +11,8 @@ public class FileData {
 
     }
 
-    public FileData(String name){
-        this.filename = name;
+    public FileData(String filename){
+        this.filename = filename;
     }
 
     public String getFilename() {

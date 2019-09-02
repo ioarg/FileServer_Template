@@ -43,6 +43,7 @@ public class FileServerConfig implements WebMvcConfigurer {
         return new ClientNotifier();
     }
 
+    //A bean to configure the multipart resolver
     @Bean(name="multipartResolver")
     public CommonsMultipartResolver multipartResolver() {
         CommonsMultipartResolver multResolver = new CommonsMultipartResolver();

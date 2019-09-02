@@ -2,6 +2,8 @@ package jarg.templates.FileServer.controllers;
 
 import jarg.templates.FileServer.file_utilities.json_mapping.FileData;
 import jarg.templates.FileServer.file_utilities.json_mapping.MessageResponse;
+import jarg.templates.FileServer.file_utilities.operations.FileSearching;
+import jarg.templates.FileServer.file_utilities.operations.ShallowFileSearch;
 import jarg.templates.FileServer.notifications.ClientNotifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +15,9 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.annotation.PostConstruct;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -92,12 +96,25 @@ public class FileRequestsController {
             path = "/files",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public List<FileData> getFiles(){
-        List<FileData> files = new ArrayList<>();
-        files.add(new FileData("hello.txt"));
-        files.add(new FileData("test.pdf"));
-        files.add(new FileData("manual.md"));
-        files.add(new FileData("movie.mpeg"));
-        return files;
+    public DeferredResult<List<FileData>> getFiles(){
+        DeferredResult<List<FileData>> dfResult = new DeferredResult<>();
+        //This implementation omits any subdirectories
+        FileSearching fileSearcher = new ShallowFileSearch();
+        execService.execute(()->{
+            List<FileData> fileList = fileSearcher.getFilesList(storageDirectory);
+            dfResult.setResult(fileList);
+        });
+        return dfResult;
     }
-}
+
+   /* *//*************************************************************
+     * Download file
+     *************************************************************//*
+    @GetMapping(
+            path = "/files/{filename}",
+            produces = MediaType.
+    )
+    public void getFile(@PathVariable("filename") String filename, HttpServletResponse response){
+
+    }*/
+}q

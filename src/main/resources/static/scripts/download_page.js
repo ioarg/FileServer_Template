@@ -12,20 +12,11 @@ const deleteUrl = "/filemanager/delete";
 /****************************************************************
 *   Visuals Management
 ****************************************************************/
-//Resize the content
-function resizeContent(){
-    let winWidht = $(window).width();
-    let bodyContWidth = (winWidht*2)/3;
-    let notificationSectWidth = winWidht - bodyContWidth - 20;
-    $("#body-container").width(bodyContWidth);
-    $("#notification-section").width(notificationSectWidth);
-}
-
 //Populate the table of files with the given data
 function updateFileTable(filenames){
     //Construct table head
     let tableHead =
-        `<table class="table table-custom table-striped">\
+        `<table id="file_list_table" class="table table-custom table-striped table-bordered">\
             <thead class="thead-dark">\
                <tr>\
                     <th scope="col">FileName</th>\
@@ -59,7 +50,7 @@ function getFiles(){
         url : fileListUrl,
         success : (files)=>{
             console.log(files);
-            if(files != null){
+            if((files != null) && (files.length != 0)){
                 updateFileTable(files);
             }else{
                 $("#file_list_container").html("<p>No files to download</p>");
@@ -77,7 +68,6 @@ function getFiles(){
 $(document).ready(function(){
 
     //Event listeners =============================
-    $(window).resize(resizeContent());
 
     //Actions ===================================
     getFiles();

@@ -5,6 +5,7 @@
  */
 package jarg.templates.FileServer.controllers;
 
+import jarg.templates.FileServer.notifications.ClientNotifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,9 +20,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 @RestController
@@ -31,42 +29,10 @@ public class FileUploadController {
     private ExecutorService execService;
     @Autowired
     private String storageDirectory;
+    @Autowired
+    private ClientNotifier clientNotifier;
     private final Logger logger = LoggerFactory.getLogger(FileUploadController.class);
-    private List<SseEmitter> sseEmitters = Collections.synchronizedList(new ArrayList<>());
 
-    /*************************************************************
-     * Subscription to SSE events
-     *************************************************************/
-    @GetMapping("/notifications")
-    public SseEmitter subscribeForNotifications(){
-        logger.info("Subscription request");
-        SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
-        emitter.onCompletion(()->{sseEmitters.remove(emitter);});
-        sseEmitters.add(emitter);
-        return emitter;
-    }
-
-    private void sendNotification(String message){
-        /*  The emitters to be removed must be gathered in a List
-        *   Attempting to remove the emitter inside the catch
-        *   prevents the loop from continuing, so the other emmiters
-        *   do not get the notifications.
-         */
-        List<SseEmitter> toBeRemoved = new ArrayList<>();
-        for(SseEmitter emitter : sseEmitters){
-            try {
-                emitter.send(SseEmitter.event().name("file_operations").data(message));
-                logger.info("Notification sent");
-            } catch (IOException | IllegalStateException e) {
-                logger.error(e.getMessage());
-                toBeRemoved.add(emitter);
-            }
-        }
-        //Now it is time to clear the list of the unused emitters (Broken Pipe)
-        for(SseEmitter emitter : toBeRemoved){
-            sseEmitters.remove(emitter);
-        }
-    }
     /*************************************************************
      * Create the directory where the files will be stored
      * if it doesn't exist
@@ -84,7 +50,17 @@ public class FileUploadController {
     }
 
     /*************************************************************
+     * Subscription to SSE events
+     *************************************************************/
+    @GetMapping("/notifications")
+    public SseEmitter subscribeForNotifications(){
+        return clientNotifier.subscribe();
+    }
+
+    /*************************************************************
      * Manage file uploads
+     * - transfer the file to the storage directory
+     * - send an `upload complete` notification to the user
      *************************************************************/
     @PostMapping(path="/upload",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
@@ -95,10 +71,11 @@ public class FileUploadController {
         DeferredResult<ResponseData> dfResult = new DeferredResult<>();
         dfResult.onCompletion(()->logger.info("Uploading file "+filename+" completed."));
         dfResult.onError((Throwable th)->logger.error("Error in completing file upload for file "+filename));
+
         execService.execute(() -> {
             try {
                 file.transferTo(Paths.get(storageDirectory+filename));
-                sendNotification("File "+file.getOriginalFilename()+" uploaded.");
+                clientNotifier.sendNotification("File "+file.getOriginalFilename()+" uploaded.");
                 dfResult.setResult(new ResponseData("File"+filename+" uploaded."));
             } catch (IllegalStateException | IOException e) {
                 logger.error("Error in moving file " + e.getMessage());

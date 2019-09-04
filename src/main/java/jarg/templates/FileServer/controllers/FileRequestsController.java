@@ -8,20 +8,24 @@ import jarg.templates.FileServer.notifications.ClientNotifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.nio.file.DirectoryStream;
+import java.io.RandomAccessFile;
+import java.nio.BufferUnderflowException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
@@ -33,7 +37,7 @@ public class FileRequestsController {
     @Autowired
     private String storageDirectory;
     @Autowired
-    private ClientNotifier clientNotifier;
+    private ClientNotifier clientNotifier;      //Server Sent Events notifications
     private final Logger logger = LoggerFactory.getLogger(FileRequestsController.class);
 
     /*************************************************************
@@ -50,14 +54,6 @@ public class FileRequestsController {
                 logger.error("Post Construct - FileUploadController - " + e.getMessage());
             }
         }
-    }
-
-    /*************************************************************
-     * Subscription to SSE events
-     *************************************************************/
-    @GetMapping("/notifications")
-    public SseEmitter subscribeForNotifications(){
-        return clientNotifier.subscribe();
     }
 
     /*************************************************************
@@ -107,14 +103,36 @@ public class FileRequestsController {
         return dfResult;
     }
 
-   /* *//*************************************************************
-     * Download file
-     *************************************************************//*
+    /************************************************************
+     * Download file as a stream of bytes
+     * - this implementation disregards the file type
+     * - and simply streams to the response
+     ************************************************************/
     @GetMapping(
             path = "/files/{filename}",
-            produces = MediaType.
+            produces = MediaType.APPLICATION_OCTET_STREAM_VALUE
     )
-    public void getFile(@PathVariable("filename") String filename, HttpServletResponse response){
-
-    }*/
+    public ResponseEntity<StreamingResponseBody> downloadFile(@PathVariable("filename") String filename, HttpServletResponse response){
+        //First check if the file exists
+        if(Files.notExists(Paths.get(storageDirectory + filename))){
+            return new ResponseEntity<StreamingResponseBody>(HttpStatus.NOT_FOUND);
+        }
+        StreamingResponseBody stream = (output) ->{
+            //Read the file into byte chunks and send them to the response
+            try(RandomAccessFile racFile = new RandomAccessFile(storageDirectory + filename, "r");
+                FileChannel fileCh = racFile.getChannel()){
+                ByteBuffer buffer = ByteBuffer.allocate(1024);
+                while(fileCh.read(buffer) > 0){
+                    buffer.flip();
+                    for(int i=0; i<buffer.limit(); i++){
+                        output.write(buffer.get());
+                    }
+                    buffer.clear();
+                }
+            }catch (IOException | BufferUnderflowException e){
+                logger.error(e.getMessage());
+            }
+        };
+        return new ResponseEntity<StreamingResponseBody>(stream, HttpStatus.OK);
+    }
 }

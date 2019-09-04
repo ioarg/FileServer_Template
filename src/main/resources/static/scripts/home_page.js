@@ -6,6 +6,7 @@
 *   Globals
 ****************************************************************/
 const uploadUrl = "/filemanager/upload";
+const notificationsUrl = "/notifications/subscribe"
 
 /****************************************************************
 *   Visuals Management
@@ -60,7 +61,7 @@ $(document).ready(function(){
     });
 
     /* Define Event Source for Server Sent Event */
-    var eventSrc = new EventSource("/filemanager/notifications");
+    var eventSrc = new EventSource(notificationsUrl);
     eventSrc.addEventListener("file_operations", function(event){
         addNotification(event.data);
     });

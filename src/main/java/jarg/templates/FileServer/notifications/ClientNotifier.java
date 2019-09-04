@@ -1,3 +1,8 @@
+/*
+* This class defines Server Sent Event interactions with the client
+* It can be used as a bean by controllers to register clients and
+* send notifications
+* */
 package jarg.templates.FileServer.notifications;
 
 import org.slf4j.Logger;
@@ -45,7 +50,7 @@ public class ClientNotifier {
     public void sendNotification(String message){
         /*  The emitters to be removed must be gathered in a List
          *   Attempting to remove the emitter inside the catch
-         *   prevents the loop from continuing, so the other emmiters
+         *   prevents the loop from continuing, so the other emitters
          *   do not get the notifications.
          */
         List<SseEmitter> toBeRemoved = new ArrayList<>();

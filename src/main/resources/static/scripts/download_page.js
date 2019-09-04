@@ -6,7 +6,7 @@
 *   Globals
 ****************************************************************/
 const fileListUrl = "/filemanager/files";
-const downloadUrl = "/filemanager/download";
+const downloadUrl = "/filemanager/files/";
 const deleteUrl = "/filemanager/delete";
 
 /****************************************************************
@@ -26,11 +26,13 @@ function updateFileTable(filenames){
     //Construct table content
     let tableContent = ``;
     for(let i=0; i<filenames.length; i++){
+        let filename = filenames[i]["filename"];
+        let downloadLink = downloadUrl.concat(filename);
         tableContent +=
             `<tr>\
-                 <td>${filenames[i]["filename"]}</td>\
+                 <td class="filename_td">${filename}</td>\
                  <td>\
-                     <button class="btn btn-primary download_btn">Download</button>\
+                     <a class="btn btn-primary btn_link" href="${downloadLink}" target="_blank" download>Download</a>\
                      <button class="btn btn-danger delete_btn">Delete</button>\
                  </td>\
              </tr>`
@@ -42,14 +44,13 @@ function updateFileTable(filenames){
 /****************************************************************
 *   Ajax Calls
 ****************************************************************/
-//Send get files request
+//Get files request
 function getFiles(){
     $.ajax({
         method : "GET",
         headers:{ "Accept" : "application/json"},
         url : fileListUrl,
         success : (files)=>{
-            console.log(files);
             if((files != null) && (files.length != 0)){
                 updateFileTable(files);
             }else{
@@ -63,11 +64,18 @@ function getFiles(){
 }
 
 /****************************************************************
+*   Document
+*   - events for dynamic content
+****************************************************************/
+//Pressing the delete btn
+$(document).on( "click", ".delete_btn", ()=>{
+
+});
+
+/****************************************************************
 *   Document Ready
 ****************************************************************/
 $(document).ready(function(){
-
-    //Event listeners =============================
 
     //Actions ===================================
     getFiles();

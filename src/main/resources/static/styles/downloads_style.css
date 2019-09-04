@@ -14,3 +14,7 @@
     margin-right:auto;
     width:600px;
 }
+
+.btn_link, .btn_link:hover, btn_link:active, .btn_link:visited{
+    text-decoration : none;
+}

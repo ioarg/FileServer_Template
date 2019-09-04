@@ -1,7 +1,6 @@
 /*
 *   The application's configuration class
-*   Used to define file server beans
-*   and static resource handlers
+*   Used to define file server beans and static resource handlers
  */
 package jarg.templates.FileServer.config;
 
@@ -11,7 +10,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
+import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
+import org.springframework.web.servlet.config.annotation.AsyncSupportConfigurer;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import java.util.concurrent.ExecutorService;
@@ -32,11 +33,6 @@ public class FileServerConfig implements WebMvcConfigurer {
     public String storageDirectory(){
         return env.getProperty("fileserver.storageDirectory");
     }
-    //Thread pool to run async io tasks
-    @Bean
-    public ExecutorService execService() {
-        return Executors.newFixedThreadPool(Integer.parseInt(env.getProperty("fileserver.maxPoolSize")));
-    }
     //A class for managing subscriptions and notifications for Server Sent Events
     @Bean
     public ClientNotifier clientNotifier(){
@@ -49,6 +45,20 @@ public class FileServerConfig implements WebMvcConfigurer {
         CommonsMultipartResolver multResolver = new CommonsMultipartResolver();
         multResolver.setMaxUploadSize(100000000);
         return multResolver;
+    }
+
+    /************************************************
+     *   Asynchronous IO configuration
+     ************************************************/
+    //Thread pool to run async io tasks
+    @Bean
+    public ExecutorService execService() {
+        return Executors.newFixedThreadPool(Integer.parseInt(env.getProperty("fileserver.maxPoolSize")));
+    }
+
+    @Override
+    public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
+        configurer.setTaskExecutor(new ConcurrentTaskExecutor(execService()));
     }
 
     /************************************************

@@ -1,3 +1,6 @@
+/*
+ * This controller is used to manage all file related requests
+ * */
 package jarg.templates.FileServer.controllers;
 
 import jarg.templates.FileServer.file_utilities.json_mapping.FileData;
@@ -69,7 +72,7 @@ public class FileRequestsController {
     public DeferredResult<MessageResponse> uploadFile(@RequestParam("file") MultipartFile file) {
         String filename = file.getOriginalFilename();
         DeferredResult<MessageResponse> dfResult = new DeferredResult<>();
-        dfResult.onCompletion(()->logger.info("Uploading file "+filename+" completed."));
+        dfResult.onCompletion(()->logger.debug("Uploading file "+filename+" completed."));
         dfResult.onError((Throwable th)->logger.error("Error in completing file upload for file "+filename));
 
         execService.execute(() -> {
@@ -135,4 +138,35 @@ public class FileRequestsController {
         };
         return new ResponseEntity<StreamingResponseBody>(stream, HttpStatus.OK);
     }
+
+    /************************************************************
+     * Delete a file
+     ************************************************************/
+    @DeleteMapping(
+            path = "/files/{filename}",
+            produces = MediaType.TEXT_PLAIN_VALUE
+    )
+    public DeferredResult<ResponseEntity<String>> deleteFile(@PathVariable String filename){
+        DeferredResult<ResponseEntity<String>> response = new DeferredResult<>();
+        execService.execute(()->{
+            Path filePath = Paths.get(storageDirectory + filename);
+            if(Files.notExists(filePath)){
+                logger.error("File could not be found");
+                response.setResult(new ResponseEntity<String>("File not found", HttpStatus.NOT_FOUND));
+            }else{
+                try {
+                    Files.delete(filePath);
+                    logger.debug("File deleted");
+                    response.setResult(new ResponseEntity<String>("File deleted!", HttpStatus.OK));
+                } catch (IOException e) {
+                    logger.error("Error in deleting file");
+                    response.setResult(new ResponseEntity<String>("The server couldn't delete the file",
+                            HttpStatus.INTERNAL_SERVER_ERROR));
+                }
+            }
+        });
+        return response;
+    }
+
+
 }

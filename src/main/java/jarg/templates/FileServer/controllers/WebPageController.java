@@ -1,3 +1,6 @@
+/*
+* This controller is used for the web pages only
+* */
 package jarg.templates.FileServer.controllers;
 
 import org.springframework.stereotype.Controller;

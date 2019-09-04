@@ -38,7 +38,7 @@ public class ClientNotifier {
      ************************************************************/
     //Subscribe for notifications
     public SseEmitter subscribe(){
-        logger.info("Subscription request");
+        logger.debug("Subscription request");
         SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
         emitter.onCompletion(()->{sseEmitters.remove(emitter);});
         sseEmitters.add(emitter);
@@ -57,7 +57,7 @@ public class ClientNotifier {
         for(SseEmitter emitter : sseEmitters){
             try {
                 emitter.send(SseEmitter.event().name("file_operations").data(message));
-                logger.info("Notification sent");
+                logger.debug("Notification sent");
             } catch (IOException | IllegalStateException e) {
                 logger.error(e.getMessage());
                 toBeRemoved.add(emitter);

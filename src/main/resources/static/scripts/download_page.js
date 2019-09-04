@@ -1,5 +1,5 @@
 /*
-*   Script to manage visuals and Ajax requests of the home page
+*   Script to manage visuals and Ajax requests of the download page
 */
 
 /****************************************************************
@@ -7,7 +7,7 @@
 ****************************************************************/
 const fileListUrl = "/filemanager/files";
 const downloadUrl = "/filemanager/files/";
-const deleteUrl = "/filemanager/delete";
+const deleteUrl = "/filemanager/files/";
 
 /****************************************************************
 *   Visuals Management
@@ -28,12 +28,13 @@ function updateFileTable(filenames){
     for(let i=0; i<filenames.length; i++){
         let filename = filenames[i]["filename"];
         let downloadLink = downloadUrl.concat(filename);
+        let deleteId = "del_".concat(filename);
         tableContent +=
             `<tr>\
                  <td class="filename_td">${filename}</td>\
                  <td>\
                      <a class="btn btn-primary btn_link" href="${downloadLink}" target="_blank" download>Download</a>\
-                     <button class="btn btn-danger delete_btn">Delete</button>\
+                     <button id="${deleteId}" class="btn btn-danger delete_btn">Delete</button>\
                  </td>\
              </tr>`
     }
@@ -58,7 +59,25 @@ function getFiles(){
             }
         },
         error : ()=>{
-            console.log("Unable to get files");
+            alert("Unable to get files");
+        }
+    });
+}
+
+//Delete Request - Refresh table on success
+function deleteFile(filename){
+    $.ajax({
+        method : "DELETE",
+        url : deleteUrl + filename,
+        headers : {"Accept" : "text/plain"},
+        success: (message)=>{
+            if(message != null){
+                alert(message);
+                getFiles();
+            }
+        },
+        error : ()=>{
+            alert("Error in deleting file");
         }
     });
 }
@@ -68,8 +87,9 @@ function getFiles(){
 *   - events for dynamic content
 ****************************************************************/
 //Pressing the delete btn
-$(document).on( "click", ".delete_btn", ()=>{
-
+$(document).on( "click", ".delete_btn", function(){
+    let filename = this.id.substring(4, this.id.length);
+    deleteFile(filename);
 });
 
 /****************************************************************

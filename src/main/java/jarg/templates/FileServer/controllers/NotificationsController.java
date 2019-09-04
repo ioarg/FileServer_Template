@@ -1,3 +1,6 @@
+/*
+ * This controller is used to subscribe to Server Sent Events
+ * */
 package jarg.templates.FileServer.controllers;
 
 import jarg.templates.FileServer.notifications.ClientNotifier;

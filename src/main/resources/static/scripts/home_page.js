@@ -6,7 +6,8 @@
 *   Globals
 ****************************************************************/
 const uploadUrl = "/filemanager/upload";
-const notificationsUrl = "/notifications/subscribe"
+const sseNotificationsUrl = "/notifications_sse/subscribe";
+const wbsNotificationsUrl = "ws://localhost:8080/notifications_wbs";
 
 /****************************************************************
 *   Visuals Management
@@ -60,8 +61,22 @@ $(document).ready(function(){
     });
 
     /* Define Event Source for Server Sent Event */
-    var eventSrc = new EventSource(notificationsUrl);
+    /*var eventSrc = new EventSource(sseNotificationsUrl);
     eventSrc.addEventListener("file_operations", function(event){
         addNotification(event.data);
-    });
+    });*/
+
+     /* Define WebSocket connection */
+    function wbsConnect() {
+        let wbsSocket = new WebSocket(wbsNotificationsUrl);
+        wbsSocket.onmessage = function (data){
+            addNotification(event.data);
+        };
+        wbsSocket.onclose = function(e) {
+            wbsConnect;
+        }
+    }
+
+    wbsConnect();
+
 });

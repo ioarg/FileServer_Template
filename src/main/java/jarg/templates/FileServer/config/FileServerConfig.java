@@ -4,7 +4,7 @@
  */
 package jarg.templates.FileServer.config;
 
-import jarg.templates.FileServer.notifications.ClientNotifier;
+import jarg.templates.FileServer.notifications.sse.ClientNotifier;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,12 +33,11 @@ public class FileServerConfig implements WebMvcConfigurer {
     public String storageDirectory(){
         return env.getProperty("fileserver.storageDirectory");
     }
-    //A class for managing subscriptions and notifications for Server Sent Events
+    //A class for managing subscriptions and notifications
     @Bean
-    public ClientNotifier clientNotifier(){
+    public ClientNotifier sseClientNotifier(){
         return new ClientNotifier();
     }
-
     //A bean to configure the multipart resolver
     @Bean(name="multipartResolver")
     public CommonsMultipartResolver multipartResolver() {

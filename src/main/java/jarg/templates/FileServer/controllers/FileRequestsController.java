@@ -7,7 +7,8 @@ import jarg.templates.FileServer.file_utilities.json_mapping.FileData;
 import jarg.templates.FileServer.file_utilities.json_mapping.MessageResponse;
 import jarg.templates.FileServer.file_utilities.operations.FileSearching;
 import jarg.templates.FileServer.file_utilities.operations.ShallowFileSearch;
-import jarg.templates.FileServer.notifications.ClientNotifier;
+import jarg.templates.FileServer.notifications.sse.ClientNotifier;
+import jarg.templates.FileServer.notifications.websockets.CustomWebSocketHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,11 +42,14 @@ public class FileRequestsController {
     private String storageDirectory;
     @Autowired
     private ClientNotifier clientNotifier;      //Server Sent Events notifications
+    @Autowired
+    private CustomWebSocketHandler wbsConnectionsHandler;   //Web Socket notifications
     private final Logger logger = LoggerFactory.getLogger(FileRequestsController.class);
 
     /*************************************************************
      * Create the directory where the files will be stored
      * if it doesn't exist
+     * and initialize other values
      *************************************************************/
     @PostConstruct
     public void init(){
@@ -78,7 +82,7 @@ public class FileRequestsController {
         execService.execute(() -> {
             try {
                 file.transferTo(Paths.get(storageDirectory+filename));
-                clientNotifier.sendNotification("File "+file.getOriginalFilename()+" uploaded.");
+                wbsConnectionsHandler.broadcastMessage("File "+file.getOriginalFilename()+" uploaded.");
                 dfResult.setResult(new MessageResponse("File"+filename+" uploaded."));
             } catch (IllegalStateException | IOException e) {
                 logger.error("Error in moving file " + e.getMessage());

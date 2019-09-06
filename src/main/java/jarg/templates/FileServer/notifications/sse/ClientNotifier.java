@@ -3,7 +3,7 @@
 * It can be used as a bean by controllers to register clients and
 * send notifications
 * */
-package jarg.templates.FileServer.notifications;
+package jarg.templates.FileServer.notifications.sse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

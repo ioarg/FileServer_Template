@@ -3,7 +3,7 @@
  * */
 package jarg.templates.FileServer.controllers;
 
-import jarg.templates.FileServer.notifications.ClientNotifier;
+import jarg.templates.FileServer.notifications.sse.ClientNotifier;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @Controller
-@RequestMapping("/notifications")
-public class NotificationsController {
+@RequestMapping("/notifications_sse")
+public class SseNotificationsController {
     @Autowired
     private ClientNotifier clientNotifier;
 
